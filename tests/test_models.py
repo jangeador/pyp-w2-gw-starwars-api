@@ -46,3 +46,34 @@ class PeopleQuerySetTestCase(BaseStarWarsAPITestCase):
     def test_people_qs_count(self):
         qs = People.all()
         self.assertEqual(qs.count(), 15)
+
+class FilmTestCase(BaseStarWarsAPITestCase):
+
+    @responses.activate
+    def test_film_model(self):
+        episode_4 = Films.get(1)
+        self.assertEqual(episode_4.title, 'A New Hope')
+        self.assertEqual(episode_4.episode_id, 4)
+        self.assertEqual(episode_4.director, 'George Lucas')
+        self.assertEqual(episode_4.producer, 'Gary Kurtz, Rick McCallum')
+        self.assertEqual(episode_4.release_date, '1977-05-25')
+
+
+class FilmsQuerySetTestCase(BaseStarWarsAPITestCase):
+
+    @responses.activate
+    def test_films_qs_next(self):
+        qs = Films.all()
+        obj = qs.next()
+        self.assertTrue(isinstance(obj, Films))
+        self.assertEqual(obj.title, 'A New Hope')
+        
+    @responses.activate
+    def test_people_qs_iterable(self):
+        qs = People.all()
+        self.assertEqual(len([elem for elem in qs]), 15)  # 10 in page1, 5 in page2
+
+    @responses.activate
+    def test_people_qs_count(self):
+        qs = People.all()
+        self.assertEqual(qs.count(), 15)

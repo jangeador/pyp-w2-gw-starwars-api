@@ -22,6 +22,9 @@ class BaseModel(object):
         if cls.RESOURCE_NAME == 'people':
             json_data = api_client.get_people(resource_id)
             return People(json_data)
+        elif cls.RESOURCE_NAME == 'films':
+            json_data = api_client.get_films(resource_id)
+            return Films(json_data)
 
     @classmethod
     def all(cls):
@@ -32,6 +35,8 @@ class BaseModel(object):
         """
         if cls.RESOURCE_NAME == 'people':
             return PeopleQuerySet()
+        elif cls.RESOURCE_NAME == 'films':
+            return FilmsQuerySet()
         
 
 class People(BaseModel):
@@ -80,20 +85,17 @@ class BaseQuerySet(object):
             try:
                 return_data = self.results[self.current_record]
             except IndexError:
-                if isinstance(self.next_page, str): 
-                    self.current_page += 1
-                    try:
-                        self.fetch_data(self.current_page)
-                    except SWAPIClientError:
-                        raise StopIteration
-                    self.current_record = 0
-                    return_data = self.results[self.current_record]
-                else:
+                self.current_page += 1
+                try:
+                    self.fetch_data(self.current_page)
+                except SWAPIClientError:
                     raise StopIteration
+                self.current_record = 0
+                return_data = self.results[self.current_record]
             self.current_record += 1
             if self.RESOURCE_NAME == 'people':
                 return People(return_data)
-            elif self.RESOURCE_NAME == 'film':
+            elif self.RESOURCE_NAME == 'films':
                 return Films(return_data)
         
     next = __next__
@@ -101,10 +103,13 @@ class BaseQuerySet(object):
     def fetch_data(self, page_number = 1):
         if self.RESOURCE_NAME == 'people':
             json_data = api_client.get_people(**{'page': page_number})
-            self.count = json_data['count']
-            self.next_page = json_data['next']
-            self.previous_page = json_data['previous']
-            self.results = json_data['results']
+        elif self.RESOURCE_NAME == 'films':
+            json_data = api_client.get_films(**{'page': page_number})
+            
+        self.count = json_data['count']
+        self.next_page = json_data['next']
+        self.previous_page = json_data['previous']
+        self.results = json_data['results']
 
     def count(self):
         """
